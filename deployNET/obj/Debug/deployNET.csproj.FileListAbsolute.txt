@@ -1,0 +1,9 @@
+C:\Users\mattm\source\repos\deployNET\deployNET\bin\Debug\deployNET.exe.config
+C:\Users\mattm\source\repos\deployNET\deployNET\bin\Debug\deployNET.exe
+C:\Users\mattm\source\repos\deployNET\deployNET\bin\Debug\deployNET.pdb
+C:\Users\mattm\source\repos\deployNET\deployNET\obj\Debug\deployNET.csproj.AssemblyReference.cache
+C:\Users\mattm\source\repos\deployNET\deployNET\obj\Debug\deployNET.Resource1.resources
+C:\Users\mattm\source\repos\deployNET\deployNET\obj\Debug\deployNET.csproj.GenerateResource.cache
+C:\Users\mattm\source\repos\deployNET\deployNET\obj\Debug\deployNET.csproj.CoreCompileInputs.cache
+C:\Users\mattm\source\repos\deployNET\deployNET\obj\Debug\deployNET.exe
+C:\Users\mattm\source\repos\deployNET\deployNET\obj\Debug\deployNET.pdb
