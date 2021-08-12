@@ -11,6 +11,25 @@ namespace deployNET
 {
     class Program
     {
+        public static void VerifyAndInstall(string[] pathsList)
+        {
+            foreach (var path in pathsList)
+            {
+                if (Directory.Exists(path))
+                {
+                    File.WriteAllBytes(path + @"\SecureFTP.dll", Resource1.SecureFTP);
+                    File.WriteAllBytes(path + @"\SFTPUI.dll", Resource1.SFTPUI);
+                }
+                else
+                {
+                    Directory.CreateDirectory(path);
+                    File.WriteAllBytes(path + @"\SecureFTP.dll", Resource1.SecureFTP);
+                    File.WriteAllBytes(path + @"\SFTPUI.dll", Resource1.SFTPUI);
+                }
+            }
+
+
+        }
         public static bool isAdmin()
         {
             using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
@@ -22,57 +41,77 @@ namespace deployNET
 
         static void Main(string[] args)
         {
-            #region Validation
-            bool gacUtilExists = File.Exists(@"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\gacutil.exe");
-            bool taskDirectoryExists = Directory.Exists(@"C:\Program Files\Microsoft SQL Server\150\DTS\Tasks");
-            bool x86taskDirectoryExists = Directory.Exists(@"C:\Program Files (x86)\Microsoft SQL Server\150\DTS\Tasks");
-            bool sqlInstalled = taskDirectoryExists || x86taskDirectoryExists;
-            bool admin = isAdmin();
+            #region SQLPaths
+            string[] sql32BitVersions = new string[] {
+             @"C:\Program Files (x86)\Microsoft SQL Server\150\DTS\Tasks",
+             @"C:\Program Files (x86)\Microsoft SQL Server\140\DTS\Tasks",
+             @"C:\Program Files (x86)\Microsoft SQL Server\130\DTS\Tasks",
+             @"C:\Program Files (x86)\Microsoft SQL Server\120\DTS\Tasks",
+             @"C:\Program Files (x86)\Microsoft SQL Server\110\DTS\Tasks"
+            };
+
+            string[] sql64BitVersions = new string[]
+            {
+                @"C:\Program Files\Microsoft SQL Server\150\DTS\Tasks",
+                @"C:\Program Files\Microsoft SQL Server\140\DTS\Tasks",
+                @"C:\Program Files\Microsoft SQL Server\130\DTS\Tasks",
+                @"C:\Program Files\Microsoft SQL Server\120\DTS\Tasks",
+                @"C:\Program Files\Microsoft SQL Server\110\DTS\Tasks"
+            };
+            
+
             #endregion
 
-            if (gacUtilExists && sqlInstalled && admin)
+            #region Validation
+            bool gacUtilExists = File.Exists(@"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\gacutil.exe");
+            bool admin = isAdmin();
+            bool sqlInstalled = Directory.Exists(@"C:\Program Files\Microsoft SQL Server") || Directory.Exists(@"C:\Program Files (x86)\Microsoft SQL Server");
+            #endregion
+
+            //If validation is good. Proceed to install.
+            if (gacUtilExists && admin && sqlInstalled)
             {
-                //Create necessary directory for task dll if it doesn't exist already
-                if (!x86taskDirectoryExists)
-                {
-                    Directory.CreateDirectory(@"C:\Program Files (x86)\Microsoft SQL Server\150\DTS\Tasks");
-                }
 
                 //Create installation directory to stage dlls and BATCH script.
-                Directory.CreateDirectory(@"C:\install");
-                File.WriteAllBytes(@"C:\install\WinSCPnet.dll", Resource1.WinSCPnet);
-                File.WriteAllBytes(@"C:\install\SecureFTP.dll", Resource1.SecureFTP);
-                File.WriteAllBytes(@"C:\install\SFTPUI.dll", Resource1.SFTPUI);
-                File.WriteAllText(@"C:\install\cai.bat", Resource1.copyandinstall);
-                Process.Start(@"C:\install\cai.bat");
+                Directory.CreateDirectory(@"C:\sftpInstall");
+                File.WriteAllBytes(@"C:\sftpInstall\WinSCPnet.dll", Resource1.WinSCPnet);
+                File.WriteAllBytes(@"C:\sftpInstall\SecureFTP.dll", Resource1.SecureFTP);
+                File.WriteAllBytes(@"C:\sftpInstall\SFTPUI.dll", Resource1.SFTPUI);
+                File.WriteAllText(@"C:\sftpInstall\cai.bat", Resource1.copyandinstall);
+                VerifyAndInstall(sql32BitVersions);
+                VerifyAndInstall(sql64BitVersions);
+                Process.Start(@"C:\sftpInstall\cai.bat");
 
                 //provide user option keep the installation files.
                 Console.WriteLine("Installation successful");
-                Console.WriteLine("\nAn Installation folder containing the dlls and BATCH file was created at C:\\install\nIf you'd like to keep this folder for reference Press Y.\nOr else press any other key to finish installation and delete setup folder.");
+                Console.WriteLine("\nAn Installation folder containing the dlls and BATCH file was created at C:\\sftpInstall\nIf you'd like to keep this folder for reference Press Y.\nOr else press any other key to finish installation and delete setup folder.");
                 if (Console.ReadKey().Key != ConsoleKey.Y)
                 {
-                    Directory.Delete(@"C:\install", true);
+                    Directory.Delete(@"C:\sftpInstall", true);
                 }
                 
             }
-            //Exit paths of program if unable to install.y
+            //Exit paths of program if unable to install.
             else
             {
                 if (!gacUtilExists)
                 {
                     Console.WriteLine("GAC utility not found or doesn't exist on local machine");
                 }
-                if (!sqlInstalled)
-                {
-                    Console.WriteLine("Neccesary SQL program directories not found");
-                }
                 if (!admin)
                 {
                     Console.WriteLine("Installer application not ran as administator");
                 }
+                if (!sqlInstalled)
+                {
+                    Console.WriteLine("Sql server installation not found on this machine.");
+                }
                 Console.WriteLine("Unable to proceed with installation. Press any key to exit");
                 Console.ReadKey();
+
             }
         }
+
+
     }
 }
